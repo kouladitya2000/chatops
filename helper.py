@@ -2,7 +2,7 @@ import os
 from azure.storage.blob import BlobServiceClient
 import requests
 import uuid
-import openai
+
 
 def upload_file_to_blob(file, STORAGEACCOUNTURL, STORAGEACCOUNTKEY, CONTAINERNAME):
     """
