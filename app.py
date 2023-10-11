@@ -4,7 +4,7 @@ import streamlit as st
 import openai
 import os
 from dotenv import load_dotenv
-from helper import upload_file_to_blob, list_blob_files, read_blob_data, tanslator,calculate_cost
+from helper import upload_file_to_blob, list_blob_files, read_blob_data, tanslator,calculate_cost,convert_audio_to_text
 from streamlit.logger import get_logger
 from PIL import Image
 
@@ -16,6 +16,9 @@ openai.api_type = os.getenv('api_type')
 openai.api_base = os.getenv('api_base')
 openai.api_version = os.getenv('api_version')
 openai.api_key = os.getenv('api_key')
+
+#Get Azure Cognitive service credentials
+
 
 # Azure Blob Storage configuration
 STORAGEACCOUNTURL = os.getenv('STORAGEACCOUNTURL')
@@ -218,6 +221,50 @@ def chat_page():
             st.text(translate)
 
     st.write("For doing Chat on large Uploaded Document use this. [Document Chat](https://hsbcai-site.azurewebsites.net/Chat)")
+
+
+CogKey= os.getenv('acs_key')
+CogRegion= os.getenv('acs_region')
+# New page for audio processing
+def audio_to_text_page():
+    st.caption("Upload an audio file for text conversion")
+
+    # Upload an audio file
+    audio_file = st.file_uploader("Upload Audio", type=["mp3", "wav"])
+
+    if audio_file:
+        # Convert the audio to text using the helper function
+        text = convert_audio_to_text(audio_file,CogKey,CogRegion)
+        st.write("Converted Text:")
+        st.write(text)
+
+        # Add the text to the prompt
+        if st.button("Upload Text to Prompt"):
+            # Add the text to the prompt in your session state
+            st.session_state['prompt'] = f"You are an Azure Bot and you have certain information available to you. You only have to reply based on that information and for the rest of the stuff you need to Answer I don't know. Here is the information below:\n\n{text}\n"
+
+        # Chat with the uploaded data
+        st.caption("Chat with the uploaded data")
+
+        # Select Target Model
+        selected_model = st.selectbox("Select Target Model:", list(model_names.keys()), format_func=lambda x: model_names[x])
+
+        # User Input
+        user_input = st.text_area("User Input:", "")
+
+        if st.button("Generate Response"):
+            input_prompt = st.session_state['prompt'] + f"\nUser Input: {user_input}"
+
+            response = openai.Completion.create(
+                engine=model_names[selected_model],
+                prompt=input_prompt,
+                temperature=0.7,
+                max_tokens=1000  
+            )
+
+            assistant_reply = response.choices[0].text.strip()
+            st.write(assistant_reply)
+
 
 if __name__ == "__main__":
     main()

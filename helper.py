@@ -2,6 +2,8 @@ import os
 from azure.storage.blob import BlobServiceClient
 import requests
 import uuid
+import azure.cognitiveservices.speech as speechsdk
+
 
 
 def upload_file_to_blob(file, STORAGEACCOUNTURL, STORAGEACCOUNTKEY, CONTAINERNAME):
@@ -132,3 +134,21 @@ def calculate_cost(response, cost_per_token=0.00002):
         return cost,total_tokens,input_cost,pt,generative_cost,ct
     except AttributeError:
         return 0.0
+    
+
+
+#AUDIO TO TEXT
+def convert_audio_to_text(audio_file, subscription_key, region):
+    speech_config = speechsdk.SpeechConfig(subscription=subscription_key, region=region)
+    audio_input = speechsdk.AudioConfig(filename=audio_file.name)
+    
+    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_input)
+
+    result = speech_recognizer.recognize_once()
+
+    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
+        return result.text
+    else:
+        return "Error: Unable to recognize speech"
+
+
