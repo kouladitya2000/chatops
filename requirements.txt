@@ -4,3 +4,4 @@ python-dotenv~=0.19.1
 azure-storage-blob~=12.9.0
 requests
 Pillow
+azure-cognitiveservices-speech-sdk~=1.18.0
