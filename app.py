@@ -62,7 +62,7 @@ def main():
     
 
     # Sidebar navigation
-    page = st.sidebar.selectbox("Select Page", ["Upload Data", "Chat", "Costing"], index=1)
+    page = st.sidebar.selectbox("Select Page", ["Upload Data", "Chat", "Costing","Podcast Utility"], index=1)
 
     if page == "Chat":
         chat_page()
@@ -70,6 +70,8 @@ def main():
         upload_page()
     elif page == "Costing":
         costing_page()
+    elif page == "Podcast Utility":
+        audio_to_text_page()
 
 
 
