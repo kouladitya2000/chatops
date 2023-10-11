@@ -2,7 +2,7 @@ import os
 from azure.storage.blob import BlobServiceClient
 import requests
 import uuid
-import azure.cognitiveservices.speech as speechsdk
+import speech_recognition as sr
 
 
 
@@ -138,17 +138,17 @@ def calculate_cost(response, cost_per_token=0.00002):
 
 
 #AUDIO TO TEXT
-def convert_audio_to_text(audio_file, subscription_key, region):
-    speech_config = speechsdk.SpeechConfig(subscription=subscription_key, region=region)
-    audio_input = speechsdk.AudioConfig(filename=audio_file.name)
-    
-    speech_recognizer = speechsdk.SpeechRecognizer(speech_config=speech_config, audio_config=audio_input)
+def convert_audio_to_text(audio_file_path):
+    r = sr.Recognizer()
 
-    result = speech_recognizer.recognize_once()
-
-    if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-        return result.text
-    else:
-        return "Error: Unable to recognize speech"
+    try:
+        with sr.AudioFile(audio_file_path) as source:
+            audio_data = r.record(source)
+            text = r.recognize_google(audio_data)
+            return text
+    except sr.UnknownValueError:
+        return "Speech Recognition could not understand the audio"
+    except sr.RequestError as e:
+        return f"Could not request results from Google Speech Recognition service; {e}"
 
 

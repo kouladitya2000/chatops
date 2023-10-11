@@ -225,48 +225,57 @@ def chat_page():
     st.write("For doing Chat on large Uploaded Document use this. [Document Chat](https://hsbcai-site.azurewebsites.net/Chat)")
 
 
-CogKey= os.getenv('acs_key')
-CogRegion= os.getenv('acs_region')
-# New page for audio processing
 def audio_to_text_page():
+    ####### audio PAGE
     st.caption("Upload an audio file for text conversion")
 
-    # Upload an audio file
     audio_file = st.file_uploader("Upload Audio", type=["mp3", "wav"])
 
+    # Initialize prompt if not in session state
+    if 'prompt' not in st.session_state:
+        st.session_state['prompt'] = "You are an Azure Bot and you have certain information available to you. You only have to reply based on that information. Here is the information below:\n\n[Your data here]\n"
+
+    # Define input_prompt as a blank string
+    input_prompt = ""
+
     if audio_file:
-        # Convert the audio to text using the helper function
-        text = convert_audio_to_text(audio_file,CogKey,CogRegion)
+        text = convert_audio_to_text(audio_file)  # Convert audio to text using SpeechRecognition
         st.write("Converted Text:")
         st.write(text)
 
-        # Add the text to the prompt
-        if st.button("Upload Text to Prompt"):
-            # Add the text to the prompt in your session state
-            st.session_state['prompt'] = f"You are an Azure Bot and you have certain information available to you. You only have to reply based on that information and for the rest of the stuff you need to Answer I don't know. Here is the information below:\n\n{text}\n"
-
-        # Chat with the uploaded data
-        st.caption("Chat with the uploaded data")
-
-        # Select Target Model
-        selected_model = st.selectbox("Select Target Model:", list(model_names.keys()), format_func=lambda x: model_names[x])
-
-        # User Input
+        # Define an input box for user input
         user_input = st.text_area("User Input:", "")
 
-        if st.button("Generate Response"):
-            input_prompt = st.session_state['prompt'] + f"\nUser Input: {user_input}"
+        # Create an "Upload to Prompt" button
+        if st.button("Upload Data to Prompt"):
+            # You can specify how the uploaded audio text should be formatted and used as the prompt here
+            # For example, you can append the audio text to the existing prompt
+            audio_prompt = st.session_state['prompt'] + f"\n\nAudio Text: {text}"
 
-            response = openai.Completion.create(
-                engine=model_names[selected_model],
-                prompt=input_prompt,
-                temperature=0.7,
-                max_tokens=1000  
-            )
+            # Update input_prompt
+            input_prompt = audio_prompt
 
-            assistant_reply = response.choices[0].text.strip()
-            st.write(assistant_reply)
+            st.session_state['prompt'] = audio_prompt
 
+    # Prompt Input
+    prompt = st.text_area("Prompt:", st.session_state['prompt'])
+
+    selected_model = st.selectbox("Select Target Model:", list(model_names.keys()), format_func=lambda x: model_names[x])
+
+    # Generate Response Button
+    if st.button("Generate Response"):
+        # Update input_prompt with user input
+        input_prompt = prompt + f"\nUser Input: {user_input}"
+
+        response = openai.Completion.create(
+            engine=selected_model,
+            prompt=input_prompt,
+            temperature=0.7,  # Define 'temperature' if not defined
+            max_tokens=1000  # Define 'max_tokens' if not defined
+        )
+
+        assistant_reply = response.choices[0].text.strip()
+        st.write(assistant_reply)
 
 if __name__ == "__main__":
     main()
