@@ -77,7 +77,7 @@ def main():
 
 # Upload data to Azure Blob Storage
 def upload_page():
-    st.subheader("Upload Files to Storage ")
+    st.subheader("Upload Files To Storage ")
 
     # Upload multiple files to Azure Blob Storage
     files = st.file_uploader("", type=["txt"], accept_multiple_files=True)
